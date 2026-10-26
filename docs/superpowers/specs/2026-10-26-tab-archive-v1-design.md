@@ -1,6 +1,6 @@
 # Tab Archive — V1 product + architecture spec
 
-Status: **V1 implemented; Node regression and isolated Chrome UI smoke passed. Real Notion write/close requires owner's scoped integration token.** Date: 2026-10-26. Owner explicitly authorized execution without another review.
+Status: **V1 implemented; 26/26 regression tests, isolated Chrome true 5-minute idle/close with fake Notion API, duplicate/retry/protections/restart verified. Real Notion API write/close NOT verified: owner-scoped integration token missing.** Date: 2026-10-26. Owner authorized execution without extra review.
 
 ## Outcome
 User has ~145 Chrome tabs across unrelated topics. Opening useful links should require zero manual bookmarking. Within approximately 5 minutes **after a tab stops being selected**, V1 archives its link into existing Notion DB, labels it, and closes the exact same tab only on confirmed successful save. Saved links remain in Notion after reopening.

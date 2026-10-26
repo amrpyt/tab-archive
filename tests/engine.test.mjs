@@ -119,7 +119,8 @@ test('Chrome session restore never archives restored background backlog', async(
   const restored=tab();f.tabs.set(1,restored);
   await f.engine.observe(restored); // Chrome sends onCreated during session restore.
   f.advance(301000);await f.engine.scan();assert.deepEqual(f.removed,[]);
-  await f.engine.activate(restored);f.advance(301000);await f.engine.scan();
+  f.tabs.set(1,{...restored,active:true});await f.engine.activate({...restored,active:true});await f.engine.scan();
+  f.tabs.set(1,restored);await f.engine.scan();f.advance(301000);await f.engine.scan();
   assert.deepEqual(f.removed,[1]);
 });
 
@@ -128,4 +129,62 @@ test('background updates of old untouched tabs do not enroll them',async()=>{
   const old=tab();f.tabs.set(1,old);
   await f.engine.update(old);
   f.advance(301000);await f.engine.scan();assert.deepEqual(f.removed,[]);
+});
+
+test('five-minute countdown starts on leaving active tab, not when it first opened', async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  const active={...tab(), active:true};f.tabs.set(1,active);
+  await f.engine.observe(active);
+  f.advance(20*60000);await f.engine.scan(); // 20 minutes actively reading.
+  assert.equal(f.calls.length,0);
+  f.tabs.set(1,{...active,active:false});
+  await f.engine.scan(); // first observed background minute
+  f.advance(4*60000);await f.engine.scan();
+  assert.deepEqual(f.removed,[],'must not close after only four minutes in background');
+  f.advance(61000);await f.engine.scan();
+  assert.deepEqual(f.removed,[1]);
+});
+
+test('re-selecting and leaving tab resets whole idle countdown', async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  const background=tab();f.tabs.set(1,background);await f.engine.observe(background);
+  f.advance(4*60000);
+  const active={...background,active:true};f.tabs.set(1,active);
+  await f.engine.activate(active);await f.engine.scan();
+  f.tabs.set(1,background);await f.engine.scan();
+  f.advance(4*60000);await f.engine.scan();assert.deepEqual(f.removed,[]);
+  f.advance(61000);await f.engine.scan();assert.deepEqual(f.removed,[1]);
+});
+
+test('a page loading same URL cannot erase unsaved form protection', async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  const t=tab();f.tabs.set(1,t);await f.engine.observe(t);await f.engine.markDirty(t.id);
+  await f.engine.update(t);
+  f.advance(301000);await f.engine.scan();
+  assert.equal(f.removed.length,0);
+});
+
+test('tab created on chrome newtab URL remains tracked after its real URL loads',async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  const provisional={...tab(),url:'chrome://newtab/',active:true};
+  await f.engine.observe(provisional);
+  f.tabs.set(1,tab());
+  await f.engine.update(tab());
+  f.advance(301000);await f.engine.scan();
+  assert.deepEqual(f.removed,[1]);
+});
+
+test('connection validates a future Notion token format via live API response, not a hard-coded prefix',async()=>{
+  const f=setup();
+  await f.engine.connect('new_token_format_0123456789');
+  assert.equal((await f.engine.status()).hasToken,true);
+});
+
+test('tabs opened during pause cannot be closed immediately after resume',async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:false});
+  const t=tab();f.tabs.set(1,t);await f.engine.observe(t);
+  f.advance(10*60_000);
+  await f.engine.configure({enabled:true});await f.engine.scan();
+  assert.deepEqual(f.removed,[]);
+  assert.equal(f.calls.length,0);
 });

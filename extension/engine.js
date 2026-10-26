@@ -44,6 +44,7 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
       if (update.enabled !== undefined) {
         if (update.enabled && !cfg.token) throw Error('اربط نوشن الأول');
         cfg.enabled = Boolean(update.enabled);
+        if (!cfg.enabled) s.tracked = {}; // Pausing cannot leave a ready-to-close backlog.
       }
       return true;
     });
@@ -68,7 +69,7 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
   }
 
   async function connect(token) {
-    if (!/^((secret_|ntn_)[^\s]{8,})$/.test(String(token).trim())) throw Error('مفتاح نوشن غير صالح');
+    if (!/^[^\s]{16,512}$/.test(String(token).trim())) throw Error('مفتاح نوشن غير صالح');
     const ds = await notion(String(token).trim(), `/data_sources/${DATA_SOURCE_ID}`);
     if (!ds.properties?.['العنوان'] || !ds.properties?.['الرابط']) throw Error('صلاحيات قاعدة الأرشيف ناقصة');
     await configure({token, enabled:false});
@@ -87,28 +88,32 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
   async function observe(tab) {
     if (tab?.id === undefined) return;
     return mutate(s => {
+      if (!s.config.enabled) return;
       if (s.restoreProtectUntil > now()) return; // Restored Chrome tabs need an explicit activation.
       delete s.dirty[tab.id];
       delete s.pending[tab.id];
-      if (isSafeUrl(tab.url, [])) s.tracked[tab.id] = {url:tab.url, at:now()};
-      else if (!tab.url) s.tracked[tab.id] = {url:null, at:now()}; // New background tab, URL not set yet.
-      else delete s.tracked[tab.id];
+      if (isSafeUrl(tab.url, [])) s.tracked[tab.id] = {url:tab.url, at:tab.active ? null : now(), selected:Boolean(tab.active)};
+      else s.tracked[tab.id] = {url:null, at:tab.active ? null : now(), selected:Boolean(tab.active)};
+      // onCreated often sees chrome://newtab before the real URL. Keep provisional only for newly created tabs.
     });
   }
   async function update(tab) {
     if (tab?.id === undefined) return;
     return mutate(s => {
+      if (!s.config.enabled) return;
       if (!s.tracked[tab.id]) return; // Existing Chrome backlog never enrolls from background refresh.
+      if (s.tracked[tab.id].url === tab.url) return; // Loading a form must not clear its dirty flag.
       delete s.dirty[tab.id];
       delete s.pending[tab.id];
-      s.tracked[tab.id] = {url:isSafeUrl(tab.url, []) ? tab.url : null, at:now()};
+      s.tracked[tab.id] = {url:isSafeUrl(tab.url, []) ? tab.url : null, at:tab.active ? null : now(),selected:Boolean(tab.active)};
     });
   }
   async function activate(tab) {
     if (tab?.id === undefined) return;
     return mutate(s => {
+      if (!s.config.enabled) return;
       delete s.pending[tab.id];
-      if (isSafeUrl(tab.url, [])) s.tracked[tab.id] = {url:tab.url, at:now()};
+      if (isSafeUrl(tab.url, [])) s.tracked[tab.id] = {url:tab.url, at:null, selected:true};
       else delete s.tracked[tab.id];
       // Do NOT reset dirty: user can return to an unsaved form and leave again.
     });
@@ -122,6 +127,17 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
   async function restart() {
     // Tab IDs can be reused after browser restart. Old pending is kept but not auto-closed.
     return mutate(s => {s.tracked={};s.dirty={};s.restoreProtectUntil=now()+120_000;});
+  }
+
+  async function refreshActivity(tabs) {
+    await mutate(s => {
+      for (const tab of tabs) {
+        const r = s.tracked[tab.id];
+        if (!r || r.url !== tab.url) continue;
+        if (tab.active) {r.selected = true;r.at = null;}
+        else if (r.selected) {r.selected = false;r.at = now();}
+      }
+    });
   }
 
   async function isClean(tabId) {
@@ -184,9 +200,11 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
       const s = await read();
       if (!s.config.enabled || !s.config.token) return;
       const tabs = await chrome.tabs.query({});
-      const eligible = tabs.filter(tab => canArchive(tab, s.tracked[tab.id], now(), s.config.idleMinutes,
-        s.config.excludes, Boolean(s.dirty[tab.id])) &&
-        !(s.pending[tab.id]?.url === tab.url && s.pending[tab.id]?.nextAt > now()));
+      await refreshActivity(tabs);
+      const current = await read();
+      const eligible = tabs.filter(tab => canArchive(tab, current.tracked[tab.id], now(), current.config.idleMinutes,
+        current.config.excludes, Boolean(current.dirty[tab.id])) &&
+        !(current.pending[tab.id]?.url === tab.url && current.pending[tab.id]?.nextAt > now()));
       for (const tab of eligible.slice(0,3)) {
         const fresh = await read();
         if (!fresh.config.enabled) break;
