@@ -20,6 +20,7 @@
 - Chrome 137+ branded ignores `--load-extension`. Isolated launcher uses Chrome for Testing; never load user Chrome profile.
 - 2026-10-27: created real Notion Developer connection `Tab Archive V1 Private` via UI Automation on separate Chrome window. Read/Insert ON; Update OFF. Notion connected it to project parent; archive inherits access.
 - **Still NOT authorized in Chrome extension:** token never read, exported, logged, or moved. Automated secret transfer blocked. Owner alone: copy token in Notion Developers, paste into isolated extension popup, click `اربط نوشن`. No duplicate connection creation.
+- 2026-10-27 final check: archive database is child of granted project page (verified Notion ancestor path). Isolated extension hasToken=false, enabled=false. Dedicated developer and isolated popup windows are open side-by-side; do not read/copy token programmatically.
 - Do not rerun successful 26 tests or fake E2E. Once token installed, run only *real* Notion archive/close and failure checks with disposable tabs.
 
 ## References

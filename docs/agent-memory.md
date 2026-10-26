@@ -36,6 +36,7 @@
 ## Only remaining owner step
 - Connection `Tab Archive V1 Private` ALREADY CREATED in signed-in Notion Developer UI 2026-10-27. Read + Insert on; Update off. Attached to project page and its archive child via Notion Connections menu; parent inheritance includes project docs. Owner must NOT create another connection.
 - Automated opaque copy/paste of connection token was rejected by safety guard; no token copied, read, sent, or stored. Browser app has read-only access; native UI Automation safely created/attached connection on separate dedicated windows, without session or cookie extraction.
+- Rechecked 2026-10-27: Notion fetch confirms archive DB parent is granted project page `40573001...`. Isolated Chrome popup inspected: `configured=false`, `enabled=false`, `recent=0`. Notion Developer window `Tab Archive V1 Private` and isolated Tabaati popup positioned side-by-side, Copy control present. No authentication request using actual token possible without owner action. Do not use legacy connector auth/session or rerun mock tests.
 - Owner ONLY: in Notion Developers `Tab Archive V1 Private`, press Copy on API token. Paste straight into `تاباتي` popup in isolated Chrome, press `اربط نوشن`. Never send token via chat. Test with real Notion afterward.
 - Real Notion live acceptance: 3 disposable tabs, wait 5min each; ensure row before close, tags/category, duplicate check, offline recovery.
 
