@@ -1,0 +1,32 @@
+:root {font:14px/1.5 system-ui,'Segoe UI',Tahoma,sans-serif;color:#182b28;background:#f4f7f6}
+* {box-sizing:border-box}
+body {margin:0;width:360px;max-height:590px;overflow:auto}
+main {padding:15px}
+header {display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+h1 {font-size:24px;line-height:1.2;margin:0;color:#0d5145}
+p {margin:4px 0;color:#57726b;font-size:12px}
+small {display:block;font-size:11px;color:#678179}
+header span {font-size:11px;border-radius:99px;background:#dce9e6;padding:4px 9px;color:#31584f}
+.panel {background:white;border:1px solid #dfebe8;border-radius:14px;padding:13px;margin-bottom:11px;box-shadow:0 2px 8px #0b42370a}
+.flex {display:flex;align-items:center;justify-content:space-between;gap:12px}
+strong {font-size:14px}
+label {display:block;margin:10px 0 5px;color:#466159;font-size:12px}
+input,textarea {font:inherit;max-width:100%;border:1px solid #cadbd6;border-radius:9px;padding:8px 10px;outline-color:#2a8977;background:#fff;width:100%}
+input[type=number]{width:80px;text-align:center}
+button {font:inherit;cursor:pointer;border:1px solid #bed9d1;color:#156b5b;background:#e9f5f0;padding:7px 12px;border-radius:9px}
+button.primary,button#enable {background:#177963;color:#fff;border-color:#177963}
+button:disabled {opacity:.55;cursor:not-allowed}
+button.link {background:none;border:0;padding:7px 0;color:#147563}
+button.danger {margin-top:9px;background:#fff0ef;color:#ab4239;border-color:#f2cfcc}
+#setup button {margin:10px 0}
+a {color:#177963;font-size:12px}
+details summary {font-weight:600;cursor:pointer}
+details button {margin-top:9px}
+#search {margin:10px 0 6px}
+#recent {max-height:150px;overflow:auto}
+.item {display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e9f0ee}
+.item:last-child {border:0}
+.item button {display:block;padding:0;background:none;border:0;text-align:right;color:#235d54;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:238px}
+.item small {margin-inline-start:auto;white-space:nowrap}
+#feedback {min-height:16px;color:#ac483e}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible {outline:2px solid #168871;outline-offset:2px}

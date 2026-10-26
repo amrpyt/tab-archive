@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>تاباتي</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header><div><h1>تاباتي</h1><p>سيب التبويب. هيتحفظ في نوشن.</p></div><span id="badge">متوقف</span></header>
+    <section class="panel">
+      <div class="flex"><div><strong>الحفظ التلقائي</strong><small id="connection">اربط نوشن الأول</small></div><button id="enable" type="button" disabled>تشغيل</button></div>
+      <label for="idle">بعد كام دقيقة؟</label>
+      <div class="flex"><input id="idle" type="number" min="1" max="120" value="5"><span>دقيقة خمول</span></div>
+      <button id="saveMinutes" class="link" type="button">حفظ المدة</button>
+    </section>
+    <section id="setup" class="panel"><strong>ربط نوشن — مرة واحدة</strong><p>اعمل تكامل خاص وشاركه مع قاعدة الأرشيف.</p>
+      <label for="token">مفتاح التكامل</label><input id="token" type="password" placeholder="الصق المفتاح هنا" autocomplete="off" spellcheck="false">
+      <button id="connect" type="button" class="primary">اربط نوشن</button>
+      <a href="https://www.notion.so/profile/integrations" target="_blank" rel="noreferrer">إنشاء تكامل نوشن</a>
+    </section>
+    <section class="panel"><div class="flex"><strong>الأرشيف</strong><a id="archive" target="_blank" rel="noreferrer">افتح نوشن</a></div>
+      <input id="search" type="search" placeholder="دور في آخر المحفوظات..." aria-label="بحث في آخر المحفوظات">
+      <div id="recent" role="list"></div>
+      <small id="pending"></small>
+    </section>
+    <details class="panel"><summary>الاستثناءات والتصنيفات</summary>
+      <label for="excluded">مواقع متتحفظش (موقع في كل سطر)</label><textarea id="excluded" rows="5" spellcheck="false"></textarea>
+      <label for="rules">تصنيف مخصص (موقع=تصنيف)</label><textarea id="rules" rows="4" spellcheck="false" placeholder="example.com=برمجة"></textarea>
+      <small>التصنيفات: برمجة، ذكاء اصطناعي، دين، تصميم، شغل، أخرى</small>
+      <button id="saveRules" type="button">حفظ القواعد</button>
+      <button id="disconnect" type="button" class="danger">فصل نوشن</button>
+    </details>
+    <p id="feedback" aria-live="polite"></p>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
