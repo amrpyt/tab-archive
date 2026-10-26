@@ -7,7 +7,7 @@
 
 ## Workflow
 - Each session: `mem context "tab-archive: <task>"`. Read `docs/agent-memory.md`, latest spec, git status, affected code.
-- `using-superpowers`: brainstorm -> approved spec -> writing-plans -> execution. Get design approval before code.
+- `using-superpowers`: brainstorm -> spec -> writing-plans -> TDD. Owner already authorized V1; no repeat approval.
 - `ponytail` ultra throughout. Reuse open source, native browser/Notion APIs. Minimum dependencies/files. No speculative features.
 - Nontrivial logic: one meaningful regression check. Real Chrome + failure-path verification.
 - Record decisions, blockers, tests in `docs/agent-memory.md`. Memory scoped `tab-archive`; never secrets/tokens.
