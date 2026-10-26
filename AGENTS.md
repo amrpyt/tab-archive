@@ -16,6 +16,8 @@
 - Skip active/pinned/audible/incognito/restricted/excluded/dirty. Browser restart: `chrome.storage.session` marker clears stale IDs; pause ignores tabs.
 - V1 metadata only. No secrets, forms, body text, transcripts. Official Notion API. No bulk-close or existing-tab sweep.
 - Mock Chrome E2E passed. **Live Notion API write/close NOT verified** without owner-created scoped integration token.
+- Production extension loaded in isolated Chrome. Real Notion API returned 401 for deliberately invalid test token; auto-save stayed OFF.
+- Chrome 137+ branded ignores `--load-extension`. Isolated launcher uses Chrome for Testing; never load user Chrome profile.
 
 ## References
 - Spec: `docs/superpowers/specs/2026-10-26-tab-archive-v1-design.md`

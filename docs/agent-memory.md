@@ -29,6 +29,9 @@
 - Real isolated Chrome + test-only local fake Notion (NOT live Notion API): wall-clock ~5m23s -> saved title/URL/category/tags -> tab closed. Pinned, sensitive, unsaved form, excluded untouched. Search/reopen + duplicate dedup. Offline -> remains open/pending; reconnect -> save/close. Pause/resume safe.
 - Isolated persistent Chrome browser restart: stale tracking found then fixed. `chrome.storage.session` marker resets old tracked IDs; connection config persists. Browser runner sometimes disabled unpacked extension until Developer Mode reenabled; isolated only.
 - Notion connector: existing archive schema and gallery view verified; cleared empty filters. Gallery reads 0 rows. No external Notion integration token available via connector or env. No real Notion HTTP write/close done.
+- Latest gap check: standalone production `extension/` loaded in isolated Chrome profile. Real `api.notion.com` request with deliberately fake, nonsecret token returned HTTP 401; config remained disabled/no token stored; network/API path reachable. NOT an authorized save.
+- Examined Notion connector (no token issuance action), Composio (Notion unconnected and content tools only), TinyFish (no signed-in Notion profile), Browser app (read-only). None can grant/export safe standalone extension authorization. No sessions/keys/cookies accessed.
+- Fixed `فتح-كروم-منفصل.ps1`: branded Chrome 137+ ignores `--load-extension`; use installed Chrome for Testing with dedicated `%LOCALAPPDATA%\tab-archive-isolated-chrome` profile. Launched process verified separate and uses `--load-extension`. Opens extensions + Notion integrations settings.
 
 ## Only remaining owner step
 - Owner creates private Notion integration from logged-in workspace, gives archive DB only read/insert permissions, pastes token into installed extension popup; never send token via chat.
