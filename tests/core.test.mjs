@@ -8,7 +8,7 @@ test('canonicalizes trackers but keeps functional video and timestamp params', (
 });
 
 test('rejects secrets, private addresses and privileged/financial/auth pages', () => {
-  for (const url of ['chrome://extensions', 'https://a.com/?access_token=SECRET', 'https://site.com/login', 'https://site.com/checkout', 'http://127.0.0.1:8000', 'https://mail.google.com/', 'https://app.notion.com', 'https://demo.com/path#access_token=wow']) {
+  for (const url of ['chrome://extensions', 'https://a.com/?access_token=SECRET', 'https://site.com/login', 'https://site.com/checkout', 'http://127.0.0.1:8000', 'https://mail.google.com/', 'https://app.notion.com', 'https://demo.com/path#access_token=wow', 'https://outlook.cloud.microsoft/mail/', 'https://outlook.office.com/mail/', 'https://portal.example.com/home', 'https://dashboard.example.com/', 'https://banking.example.com/home', 'https://shop.example.com/customer/orders', 'https://example.com/?csrf=secret', 'https://wahba.164-68-98-58.sslip.io/app']) {
     assert.equal(isSafeUrl(url, []), false, url);
   }
   assert.equal(isSafeUrl('https://ar.wikipedia.org/wiki/AI', []), true);

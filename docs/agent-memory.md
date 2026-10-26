@@ -45,3 +45,11 @@
 - Background form responder accepts only popup origin for CONFIGURE/CONNECT/STATUS; content scripts can only send DIRTY.
 - On 429, `Retry-After` honored; uncertain remote write recovers by URL query instead of creating duplicates.
 - Startup protects restored browser tabs for 2 minutes; untouched backlog never auto-enrolls on background page updates. Only user activation after startup can enroll old tabs. New tab URL starts provisional if tab was created before URL known.
+
+## Final permission check 2026-10-26
+- User authorized completing setup without repeated review. Notion plugin CAN access project/archive but offers NO API-token creation/retrieval action; its delegated connection cannot authenticate a standalone Chrome extension.
+- Inspected available local Notion token env VAR NAMES (without reading any token): `NOTION_TOKEN`, `NOTION_API_KEY`, `NOTION_ACCESS_TOKEN`, `NOTION_SECRET` absent in process/user environments.
+- Browser tool exposed ~152 user Chrome tabs, including signed-in Notion pages; tool only allows reading, not clicking/installing. Chrome main process has no remote-debugging channel. Never restart/hijack those tabs to install.
+- Isolated Notion integrations browser session did not reach interactive authenticated settings (loading screen). Closed test session. No token obtained, no credential disclosed.
+- Added fail-closed sensitivity rules for Outlook, Microsoft mail, banking/admin portals, work dashboards, purchase/customer paths, CSRF/sensitive parameters. `npm test` 19/19 still green.
+- Remaining owner-controlled steps: create private Notion integration, share archive with it, paste key directly in installed extension, then run 3–5 disposable-tab live checks. No real Notion save+close claimed yet.

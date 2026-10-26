@@ -5,12 +5,15 @@ export const DEFAULT_EXCLUDES = [
   'notion.so', 'notion.site', 'notion.com', 'chatgpt.com', 'openai.com',
   'mail.google.com', 'docs.google.com', 'drive.google.com',
   'calendar.google.com', 'accounts.google.com', 'admin.docmagdy.coderaai.com',
-  'wahba.coderaai.com',
+  'wahba.coderaai.com', 'outlook.cloud.microsoft', 'outlook.office.com',
+  'outlook.office365.com', 'outlook.live.com', 'mail.yahoo.com',
+  'mail.proton.me', 'icloud.com', 'accounts.microsoft.com', 'account.microsoft.com',
 ];
 export const CATEGORIES = ['برمجة', 'ذكاء اصطناعي', 'دين', 'تصميم', 'شغل', 'أخرى'];
 
-const authPath = /\/(?:login|log-in|signin|sign-in|signup|sign-up|auth|oauth|account|accounts|settings|profile|billing|checkout|payment|payments|wallet|inbox|compose|admin|cart|edit)(?:\/|\?|$)/i;
-const sensitiveParam = /(?:^|[&#?])(?:access_token|refresh_token|id_token|token|jwt|api_?key|secret|password|passwd|session|sessionid|sid|code|auth|authorization|signature|sig|private_key|client_secret)=/i;
+const authPath = /\/(?:login|log-in|signin|sign-in|signup|sign-up|auth|oauth|account|accounts|settings|profile|billing|checkout|payment|payments|wallet|inbox|compose|admin|cart|edit|customers?|orders?|invoices?|transactions?|payments?|dashboard|crm|inventory|pos|payroll|cases|verify)(?:\/|\?|$)/i;
+const sensitiveParam = /(?:^|[&#?])(?:access_token|refresh_token|id_token|token|jwt|api_?key|secret|password|passwd|session|sessionid|sid|code|auth|authorization|signature|sig|private_key|client_secret|csrf|nonce|ticket)=/i;
+const sensitiveSubdomain = /^(?:mail|accounts?|login|auth|admin|dashboard|portal|secure|banking)\./i;
 const trackers = new Set(['fbclid', 'gclid', 'igshid', 'mc_cid', 'mc_eid']);
 
 export function domainMatches(host, domain) {
@@ -23,6 +26,7 @@ export function isSafeUrl(value, excludes = []) {
     const u = new URL(value);
     if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password) return false;
     const host = u.hostname.toLowerCase();
+    if (sensitiveSubdomain.test(host) || host.startsWith('wahba.')) return false;
     if (!host || host === 'localhost' || host.endsWith('.local') || host.endsWith('.internal') || host.endsWith('.localhost')) return false;
     if (/^(?:127\.|10\.|192\.168\.|0\.|169\.254\.)/.test(host)) return false;
     if (/^172\.(1[6-9]|2\d|3[01])\./.test(host) || /^\[?(?:::1|fc[0-9a-f:]+|fd[0-9a-f:]+|fe80:)/i.test(host)) return false;
