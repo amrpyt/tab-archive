@@ -8,29 +8,29 @@
 </head>
 <body>
   <main>
-    <header><div><h1>تاباتي</h1><p>سيب التبويب. هيتحفظ في نوشن.</p></div><span id="badge">متوقف</span></header>
+    <header><div><h1 data-i18n="appName">تاباتي</h1><p data-i18n="tagline">سيب التبويب. هيتحفظ في نوشن.</p></div><div class="header-actions"><button id="language" type="button" class="language-switch" aria-label="Switch to English" title="Switch to English">English</button><span id="badge">متوقف</span></div></header>
     <section class="panel">
-      <div class="flex"><div><strong>الحفظ التلقائي</strong><small id="connection">اربط نوشن الأول</small></div><button id="enable" type="button" disabled>تشغيل</button></div>
-      <label for="idle">بعد كام دقيقة؟</label>
-      <div class="flex"><input id="idle" type="number" min="1" max="120" value="5"><span>دقيقة خمول</span></div>
-      <button id="saveMinutes" class="link" type="button">حفظ المدة</button>
+      <div class="flex"><div><strong data-i18n="autoSave">الحفظ التلقائي</strong><small id="connection">اربط نوشن الأول</small></div><button id="enable" type="button" disabled>تشغيل</button></div>
+      <label for="idle" data-i18n="idleLabel">بعد كام دقيقة؟</label>
+      <div class="flex"><input id="idle" type="number" min="1" max="120" value="5"><span data-i18n="minutes">دقيقة خمول</span></div>
+      <button id="saveMinutes" class="link" type="button" data-i18n="saveMinutes">حفظ المدة</button>
     </section>
-    <section id="setup" class="panel"><strong>ربط نوشن — مرة واحدة</strong><p>اعمل تكامل خاص وشاركه مع قاعدة الأرشيف.</p>
-      <label for="token">مفتاح التكامل</label><input id="token" type="password" placeholder="الصق المفتاح هنا" autocomplete="off" spellcheck="false">
-      <button id="connect" type="button" class="primary">اربط نوشن</button>
-      <a href="https://www.notion.so/profile/integrations" target="_blank" rel="noreferrer">إنشاء تكامل نوشن</a>
+    <section id="setup" class="panel"><strong data-i18n="connectHeading">ربط نوشن — مرة واحدة</strong><p data-i18n="connectHint">اعمل تكامل خاص وشاركه مع قاعدة الأرشيف.</p>
+      <label for="token" data-i18n="tokenLabel">مفتاح التكامل</label><input id="token" type="password" placeholder="الصق المفتاح هنا" autocomplete="off" spellcheck="false" data-i18n-placeholder="tokenPlaceholder">
+      <button id="connect" type="button" class="primary" data-i18n="connectButton">اربط نوشن</button>
+      <a href="https://www.notion.so/profile/integrations" target="_blank" rel="noreferrer" data-i18n="integrationsLink">إنشاء تكامل نوشن</a>
     </section>
-    <section class="panel"><div class="flex"><strong>الأرشيف</strong><a id="archive" target="_blank" rel="noreferrer">افتح نوشن</a></div>
-      <input id="search" type="search" placeholder="دور في آخر المحفوظات..." aria-label="بحث في آخر المحفوظات">
+    <section class="panel"><div class="flex"><strong data-i18n="archiveHeading">الأرشيف</strong><a id="archive" target="_blank" rel="noreferrer" data-i18n="openNotion">افتح نوشن</a></div>
+      <input id="search" type="search" placeholder="دور في آخر المحفوظات..." aria-label="بحث في آخر المحفوظات" data-i18n-placeholder="searchPlaceholder" data-i18n-aria-label="searchLabel">
       <div id="recent" role="list"></div>
       <small id="pending"></small>
     </section>
-    <details class="panel"><summary>الاستثناءات والتصنيفات</summary>
-      <label for="excluded">مواقع متتحفظش (موقع في كل سطر)</label><textarea id="excluded" rows="5" spellcheck="false"></textarea>
-      <label for="rules">تصنيف مخصص (موقع=تصنيف)</label><textarea id="rules" rows="4" spellcheck="false" placeholder="example.com=برمجة"></textarea>
-      <small>التصنيفات: برمجة، ذكاء اصطناعي، دين، تصميم، شغل، أخرى</small>
-      <button id="saveRules" type="button">حفظ القواعد</button>
-      <button id="disconnect" type="button" class="danger">فصل نوشن</button>
+    <details class="panel"><summary data-i18n="rulesHeading">الاستثناءات والتصنيفات</summary>
+      <label for="excluded" data-i18n="excludedLabel">مواقع متتحفظش (موقع في كل سطر)</label><textarea id="excluded" rows="5" spellcheck="false"></textarea>
+      <label for="rules" data-i18n="rulesLabel">تصنيف مخصص (موقع=تصنيف)</label><textarea id="rules" rows="4" spellcheck="false" placeholder="example.com=برمجة" data-i18n-placeholder="rulesPlaceholder"></textarea>
+      <small data-i18n="categoriesHint">التصنيفات: برمجة، ذكاء اصطناعي، دين، تصميم، شغل، أخرى</small>
+      <button id="saveRules" type="button" data-i18n="saveRules">حفظ القواعد</button>
+      <button id="disconnect" type="button" class="danger" data-i18n="disconnect">فصل نوشن</button>
     </details>
     <p id="feedback" aria-live="polite"></p>
   </main>

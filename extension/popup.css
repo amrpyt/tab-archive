@@ -1,16 +1,24 @@
-:root {font:14px/1.5 system-ui,'Segoe UI',Tahoma,sans-serif;color:#182b28;background:#f4f7f6}
+@font-face {font-family:'IBM Plex Sans Arabic';src:url('fonts/IBMPlexSansArabic-Regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
+@font-face {font-family:'IBM Plex Sans Arabic';src:url('fonts/IBMPlexSansArabic-Medium.ttf') format('truetype');font-style:normal;font-weight:500;font-display:swap}
+@font-face {font-family:'IBM Plex Sans Arabic';src:url('fonts/IBMPlexSansArabic-SemiBold.ttf') format('truetype');font-style:normal;font-weight:600;font-display:swap}
+@font-face {font-family:'IBM Plex Sans Arabic';src:url('fonts/IBMPlexSansArabic-Bold.ttf') format('truetype');font-style:normal;font-weight:700;font-display:swap}
+@font-face {font-family:'Inter';src:url('fonts/Inter-Variable.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:swap}
+:root {font:400 14px/1.65 'Point R','IBM Plex Sans Arabic','Segoe UI',Tahoma,sans-serif;color:#182b28;background:#f4f7f6}
+:root[lang='en'] {font-family:Inter,'Segoe UI',system-ui,sans-serif;line-height:1.5}
 * {box-sizing:border-box}
-body {margin:0;width:360px;max-height:590px;overflow:auto}
+body {margin:0;width:360px;max-height:590px;overflow:auto;font-family:inherit}
 main {padding:15px}
 header {display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
-h1 {font-size:24px;line-height:1.2;margin:0;color:#0d5145}
-p {margin:4px 0;color:#57726b;font-size:12px}
-small {display:block;font-size:11px;color:#678179}
+h1 {font-size:24px;line-height:1.4;margin:0;color:#0d5145;font-weight:700}
+p {margin:4px 0;color:#57726b;font-size:13px}
+small {display:block;font-size:12px;color:#678179}
 header span {font-size:11px;border-radius:99px;background:#dce9e6;padding:4px 9px;color:#31584f}
+.header-actions {display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.language-switch {padding:3px 8px;font:600 11px/1.4 Inter,'Segoe UI',sans-serif;background:#fff;color:#147563}
 .panel {background:white;border:1px solid #dfebe8;border-radius:14px;padding:13px;margin-bottom:11px;box-shadow:0 2px 8px #0b42370a}
 .flex {display:flex;align-items:center;justify-content:space-between;gap:12px}
-strong {font-size:14px}
-label {display:block;margin:10px 0 5px;color:#466159;font-size:12px}
+strong {font-size:14px;font-weight:600}
+label {display:block;margin:10px 0 5px;color:#466159;font-size:13px}
 input,textarea {font:inherit;max-width:100%;border:1px solid #cadbd6;border-radius:9px;padding:8px 10px;outline-color:#2a8977;background:#fff;width:100%}
 input[type=number]{width:80px;text-align:center}
 button {font:inherit;cursor:pointer;border:1px solid #bed9d1;color:#156b5b;background:#e9f5f0;padding:7px 12px;border-radius:9px}
@@ -26,7 +34,8 @@ details button {margin-top:9px}
 #recent {max-height:150px;overflow:auto}
 .item {display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e9f0ee}
 .item:last-child {border:0}
-.item button {display:block;padding:0;background:none;border:0;text-align:right;color:#235d54;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:238px}
+.item button {display:block;padding:0;background:none;border:0;text-align:start;color:#235d54;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:238px}
 .item small {margin-inline-start:auto;white-space:nowrap}
 #feedback {min-height:16px;color:#ac483e}
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible {outline:2px solid #168871;outline-offset:2px}
+:root[lang='en'] input,:root[lang='en'] textarea {direction:ltr}

@@ -33,13 +33,15 @@
 - Examined Notion connector (no token issuance action), Composio (Notion unconnected and content tools only), TinyFish (no signed-in Notion profile), Browser app (read-only). None can grant/export safe standalone extension authorization. No sessions/keys/cookies accessed.
 - Fixed `فتح-كروم-منفصل.ps1`: branded Chrome 137+ ignores `--load-extension`; use installed Chrome for Testing with dedicated `%LOCALAPPDATA%\tab-archive-isolated-chrome` profile. Launched process verified separate and uses `--load-extension`. Opens extensions + Notion integrations settings.
 
-## Only remaining owner step
-- Connection `Tab Archive V1 Private` ALREADY CREATED in signed-in Notion Developer UI 2026-10-27. Read + Insert on; Update off. Attached to project page and its archive child via Notion Connections menu; parent inheritance includes project docs. Owner must NOT create another connection.
-- Automated opaque copy/paste of connection token was rejected by safety guard; no token copied, read, sent, or stored. Browser app has read-only access; native UI Automation safely created/attached connection on separate dedicated windows, without session or cookie extraction.
-- Rechecked 2026-10-27: Notion fetch confirms archive DB parent is granted project page `40573001...`. Isolated Chrome popup inspected: `configured=false`, `enabled=false`, `recent=0`. Notion Developer window `Tab Archive V1 Private` and isolated Tabaati popup positioned side-by-side, Copy control present. No authentication request using actual token possible without owner action. Do not use legacy connector auth/session or rerun mock tests.
-- Owner ONLY: in Notion Developers `Tab Archive V1 Private`, press Copy on API token. Paste straight into `تاباتي` popup in isolated Chrome, press `اربط نوشن`. Never send token via chat. Test with real Notion afterward.
-- Real Notion live acceptance: 3 disposable tabs, wait 5min each; ensure row before close, tags/category, duplicate check, offline recovery.
+## Live Notion acceptance, 2026-10-27
+- Owner connected the isolated Chrome extension directly to `Tab Archive V1 Private`. Existing connection Read + Insert ON, Update OFF, project page grant inherited by archive. No token copied to project, agents, logs, or final output; user's previously disclosed token is a known risk.
+- `enabled=true`, default idle 5 minutes. Two new disposable background tabs waited >5 actual minutes; both archived through the official API. Local recent recorded Notion page IDs; tabs closed only after confirmation.
+- Queried the Notion archive view independently: `Example Domain` URL `/...20261027-one` category `أخرى`, tags `بحث`; `JavaScript | MDN` URL `/...20261027-two` category `برمجة`, tags `تعليم`.
+- Duplicate URL archived again after 1-minute shortened test interval: exactly one row per canonical URL; third new row `...20261027-offline` created when the browser CDP offline switch did not isolate extension service worker. That is **not** evidence of retry under a real outage; retry is validated only by automated mock tests.
+- Live pinned tab stayed open, pause/resume left its new tab untracked, recent-search filtered and reopened URL. Restored `idleMinutes=5`, auto-save enabled, removed disposable safety tabs only. Original Chrome remained untouched.
+- UI v1.1.0: Arabic/English button, persisted locale and automatic RTL/LTR; Arabic `Point R` system preference, bundled IBM Plex Sans Arabic weights 400/500/600/700 fallback, English Inter variable. Point R distributable assets/license not verified. English rule terms accepted without altering Notion Arabic taxonomy. 29/29 Node tests passed after changes.
+- Isolated Chrome for Testing requires Developer Mode ON for unpacked extension. `chrome.runtime.reload()` from popup unexpectedly disabled it; reenabled Developer Mode, then successfully reloaded from `chrome://extensions`. No original browser affected.
 
 ## Backups
 - Caveman Compress script calls Claude; user forbids. Compress prose manually with original preserved outside repo: `%LOCALAPPDATA%\caveman-compress\backups\tab-archive\` (`AGENTS.*.original.md`, `agent-memory.*.original.md`). Never compress code, URLs, commands, secrets.
-- Global memory: `mem context "tab-archive: <task>"` first; record verified milestones under project tab-archive. No worktrees.
+- Global memory: `mem context "tab-archive: <task>"` when relevant; record verified milestones under project tab-archive. No worktrees. Do not run Caveman Compress code that invokes Claude.

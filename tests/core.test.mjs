@@ -24,6 +24,15 @@ test('classifies by light rules and editable hostname overrides', () => {
   assert.deepEqual(parseDomainRules('example.com=دين\nsub.test=برمجة\ninvalid\nbad=خارج'), {'example.com':'دين','sub.test':'برمجة'});
 });
 
+test('English category rule names map to the existing Arabic Notion categories', () => {
+  const rules=parseDomainRules('example.com=Programming\nnews.site=AI\nlearn.test=Religion\ndesign.site=Design\nwork.site=Work\nmisc.site=Other\ninvalid.site=BadCategory');
+  assert.deepEqual(rules,{
+    'example.com':'برمجة','news.site':'ذكاء اصطناعي','learn.test':'دين',
+    'design.site':'تصميم','work.site':'شغل','misc.site':'أخرى',
+  });
+  assert.equal(classify('https://example.com/', 'Hello', rules).category,'برمجة');
+});
+
 test('only safe, background, unchanged, idle tabs can be archived', () => {
   const t = {id:8, url:'https://example.com/path', title:'Example', active:false, pinned:false, audible:false, incognito:false};
   const record = {url:t.url, at:1000};

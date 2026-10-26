@@ -15,13 +15,15 @@
 - Never close without confirmed Notion write + second tab/form safety check. Failed save -> stay open, retry; deduplicate.
 - Skip active/pinned/audible/incognito/restricted/excluded/dirty. Browser restart: `chrome.storage.session` marker clears stale IDs; pause ignores tabs.
 - V1 metadata only. No secrets, forms, body text, transcripts. Official Notion API. No bulk-close or existing-tab sweep.
-- Mock Chrome E2E passed. **Live Notion API write/close NOT verified** without owner-created scoped integration token.
+- Real isolated Chrome E2E passed on 2026-10-27. Actual Notion entries verified independently via Notion data source view. No user Chrome tabs touched.
 - Production extension loaded in isolated Chrome. Real Notion API returned 401 for deliberately invalid test token; auto-save stayed OFF.
 - Chrome 137+ branded ignores `--load-extension`. Isolated launcher uses Chrome for Testing; never load user Chrome profile.
 - 2026-10-27: created real Notion Developer connection `Tab Archive V1 Private` via UI Automation on separate Chrome window. Read/Insert ON; Update OFF. Notion connected it to project parent; archive inherits access.
-- **Still NOT authorized in Chrome extension:** token never read, exported, logged, or moved. Automated secret transfer blocked. Owner alone: copy token in Notion Developers, paste into isolated extension popup, click `اربط نوشن`. No duplicate connection creation.
-- 2026-10-27 final check: archive database is child of granted project page (verified Notion ancestor path). Isolated extension hasToken=false, enabled=false. Dedicated developer and isolated popup windows are open side-by-side; do not read/copy token programmatically.
-- Do not rerun successful 26 tests or fake E2E. Once token installed, run only *real* Notion archive/close and failure checks with disposable tabs.
+- 2026-10-27 owner pasted token directly into isolated popup; extension `connected=true`, `enabled=true`. Never read, copy, echo or log token, even with user's consent. Prior token exposure is a known security risk.
+- Real idle >5min: `Example Domain` and `JavaScript | MDN` archived with title, URL, category and tags before tabs closed. Notion view verified records; duplicate produced no new row; pinned tab and tab created while paused stayed safe. Local recovery 29/29 tests; real network-drop test NOT verified (CDP offline does not affect extension worker).
+- V1.1.0 UI: Arabic RTL + English LTR switching; English category rules normalized to original Notion Arabic values. Prefer `Point R` if user has font installed; fallback bundled OFL IBM Plex Sans Arabic Regular/Medium/SemiBold/Bold, Inter variable for English. The exact Point R font binary/license could not be verified; do not claim it is bundled.
+- Isolated Chrome Developer Mode must be enabled for unpacked extension; use Chrome extension manager Reload instead of `chrome.runtime.reload()` in the popup (which may disable unpacked extension).
+- Only repeat tests on code changes or new failures; no V2 work.
 
 ## References
 - Spec: `docs/superpowers/specs/2026-10-26-tab-archive-v1-design.md`

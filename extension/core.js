@@ -10,6 +10,7 @@ export const DEFAULT_EXCLUDES = [
   'mail.proton.me', 'icloud.com', 'accounts.microsoft.com', 'account.microsoft.com',
 ];
 export const CATEGORIES = ['برمجة', 'ذكاء اصطناعي', 'دين', 'تصميم', 'شغل', 'أخرى'];
+const ENGLISH_CATEGORIES = {programming:'برمجة',ai:'ذكاء اصطناعي',religion:'دين',design:'تصميم',work:'شغل',other:'أخرى'};
 
 const authPath = /\/(?:login|log-in|signin|sign-in|signup|sign-up|auth|oauth|account|accounts|settings|profile|billing|checkout|payment|payments|wallet|inbox|compose|admin|cart|edit|customers?|orders?|invoices?|transactions?|payments?|dashboard|crm|inventory|pos|payroll|cases|verify)(?:\/|\?|$)/i;
 const sensitiveParam = /(?:^|[&#?])(?:access_token|refresh_token|id_token|token|jwt|api_?key|secret|password|passwd|session|sessionid|sid|code|auth|authorization|signature|sig|private_key|client_secret|csrf|nonce|ticket)=/i;
@@ -48,8 +49,9 @@ export function parseDomainRules(raw = '') {
   const out = {};
   for (const line of String(raw).split(/\r?\n/)) {
     const [domain, category, ...rest] = line.split('=').map(s => s.trim());
-    if (rest.length || !domain || !CATEGORIES.includes(category) || !/^[\w.-]+\.[a-z]{2,}$/i.test(domain)) continue;
-    out[domain.toLowerCase()] = category;
+    const normalized = CATEGORIES.includes(category) ? category : ENGLISH_CATEGORIES[category?.toLowerCase()];
+    if (rest.length || !domain || !normalized || !/^[\w.-]+\.[a-z]{2,}$/i.test(domain)) continue;
+    out[domain.toLowerCase()] = normalized;
   }
   return out;
 }
