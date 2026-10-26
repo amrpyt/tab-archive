@@ -34,7 +34,9 @@
 - Fixed `فتح-كروم-منفصل.ps1`: branded Chrome 137+ ignores `--load-extension`; use installed Chrome for Testing with dedicated `%LOCALAPPDATA%\tab-archive-isolated-chrome` profile. Launched process verified separate and uses `--load-extension`. Opens extensions + Notion integrations settings.
 
 ## Only remaining owner step
-- Owner creates private Notion integration from logged-in workspace, gives archive DB only read/insert permissions, pastes token into installed extension popup; never send token via chat.
+- Connection `Tab Archive V1 Private` ALREADY CREATED in signed-in Notion Developer UI 2026-10-27. Read + Insert on; Update off. Attached to project page and its archive child via Notion Connections menu; parent inheritance includes project docs. Owner must NOT create another connection.
+- Automated opaque copy/paste of connection token was rejected by safety guard; no token copied, read, sent, or stored. Browser app has read-only access; native UI Automation safely created/attached connection on separate dedicated windows, without session or cookie extraction.
+- Owner ONLY: in Notion Developers `Tab Archive V1 Private`, press Copy on API token. Paste straight into `تاباتي` popup in isolated Chrome, press `اربط نوشن`. Never send token via chat. Test with real Notion afterward.
 - Real Notion live acceptance: 3 disposable tabs, wait 5min each; ensure row before close, tags/category, duplicate check, offline recovery.
 
 ## Backups

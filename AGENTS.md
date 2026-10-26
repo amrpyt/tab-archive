@@ -18,6 +18,9 @@
 - Mock Chrome E2E passed. **Live Notion API write/close NOT verified** without owner-created scoped integration token.
 - Production extension loaded in isolated Chrome. Real Notion API returned 401 for deliberately invalid test token; auto-save stayed OFF.
 - Chrome 137+ branded ignores `--load-extension`. Isolated launcher uses Chrome for Testing; never load user Chrome profile.
+- 2026-10-27: created real Notion Developer connection `Tab Archive V1 Private` via UI Automation on separate Chrome window. Read/Insert ON; Update OFF. Notion connected it to project parent; archive inherits access.
+- **Still NOT authorized in Chrome extension:** token never read, exported, logged, or moved. Automated secret transfer blocked. Owner alone: copy token in Notion Developers, paste into isolated extension popup, click `اربط نوشن`. No duplicate connection creation.
+- Do not rerun successful 26 tests or fake E2E. Once token installed, run only *real* Notion archive/close and failure checks with disposable tabs.
 
 ## References
 - Spec: `docs/superpowers/specs/2026-10-26-tab-archive-v1-design.md`
