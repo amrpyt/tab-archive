@@ -26,6 +26,7 @@
 - Isolated Chrome Developer Mode must be enabled for unpacked extension; use Chrome extension manager Reload instead of `chrome.runtime.reload()` in the popup (which may disable unpacked extension).
 - Only repeat tests on code changes or new failures; no V2 work.
 - v1.2.0 isolated Chrome: explicit enrollment of 2 existing test tabs worked; pinned tab was skipped; both stayed open; metadata read from MDN; EN/AR UI confirmed. Isolated dummy test authorization was disabled and removed. This was **not** a live Notion metadata-write test. Node suite **42/42**, including iframe added while saving. See `docs/e2e-v1.2.0.md`.
+- Production Chrome rollout: verified installed v1.1.0 was the unpacked directory `%LOCALAPPDATA%\Tabati\production-v1.1.0`. Backed up, copied 16 matching files in-place, used Tabati-only Reload in Chrome Extensions. One Tabati card showed v1.2.0 **enabled**. Did not touch tabs/profile storage or verify main popup's Notion connection. ZIP hash and GitHub release in `docs/e2e-v1.2.0.md`.
 
 ## References
 - Spec: `docs/superpowers/specs/2026-10-26-tab-archive-v1-design.md`
