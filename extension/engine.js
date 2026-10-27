@@ -1,11 +1,13 @@
-import {ARCHIVE_URL, DATA_SOURCE_ID, DEFAULT_EXCLUDES, canonicalUrl, classify, isSafeUrl, canArchive, notionPage, parseDomainRules} from './core.js';
+import {ARCHIVE_URL, DATA_SOURCE_ID, DEFAULT_EXCLUDES, canonicalUrl, classify, isSafeUrl, canArchive, notionPage, parseDomainRules, sanitizeMetadata} from './core.js';
 
 const KEY = 'tabArchiveV1';
 const API = 'https://api.notion.com/v1';
 const VERSION = '2025-09-03';
+const BACKLOG_BATCH = 10;
+const BACKLOG_SCAN_LIMIT = 1;
 const defaults = () => ({
   config:{enabled:false, idleMinutes:5, token:'', excludes:[...DEFAULT_EXCLUDES], rules:''},
-  tracked:{}, dirty:{}, pending:{}, recent:[], lastError:'',
+  tracked:{}, dirty:{}, pending:{}, legacyRejected:{}, recent:[], lastError:'',
 });
 
 export function createEngine({chrome, request = fetch, now = () => Date.now()}) {
@@ -85,6 +87,53 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
     };
   }
 
+  function backlogEligible(tab, s) {
+    return Number.isInteger(tab?.id) && !tab.active && !tab.pinned && !tab.audible && !tab.incognito &&
+      isSafeUrl(tab.url, s.config.excludes) && !s.tracked[tab.id] && !s.dirty[tab.id] && !s.pending[tab.id] &&
+      s.legacyRejected?.[tab.id] !== tab.url;
+  }
+
+  async function previewBacklog() {
+    const s=await read();
+    const tabs=await chrome.tabs.query({});
+    return {eligible:tabs.filter(t=>backlogEligible(t,s)).length,batchSize:BACKLOG_BATCH};
+  }
+
+  async function enrollBacklog() {
+    const s=await read();
+    if (!s.config.enabled || !s.config.token) throw Error('شغّل الحفظ وربط نوشن الأول');
+    if (!await chrome.permissions.contains({origins:['http://*/*','https://*/*']})) throw Error('محتاج صلاحية قراءة مواقع الويب لاستيراد القديم');
+    const tabs=(await chrome.tabs.query({})).filter(t=>backlogEligible(t,s));
+    let enrolled=0, skipped=0;
+    // One explicit click enrolls up to ten old tabs. No reload, bulk-close, or automatic import.
+    for (const tab of tabs) {
+      if (enrolled>=BACKLOG_BATCH) break;
+      try {
+        // Old pages containing frames are rejected by the top-frame guard.
+        // Injecting into every frame is unnecessary and can fail on cross-origin frames.
+        await chrome.scripting.executeScript({target:{tabId:tab.id,allFrames:false},files:['content.js']});
+        const probe=await chrome.tabs.sendMessage(tab.id,{type:'GET_METADATA',legacy:true});
+        const fresh=await chrome.tabs.get(tab.id);
+        if (probe?.dirty !== false || !probe.metadata || fresh.url!==tab.url || !backlogEligible(fresh,await read())) {
+          skipped++;
+          await mutate(current=>{current.legacyRejected ||= {};current.legacyRejected[tab.id]=tab.url;});
+          continue;
+        }
+        const accepted=await mutate(current=>{
+          if (!current.config.enabled || !backlogEligible(fresh,current)) return false;
+          current.tracked[fresh.id]={url:fresh.url,at:now(),selected:false,legacy:true};
+          return true;
+        });
+        if (accepted) enrolled++;
+      } catch {
+        skipped++;
+        await mutate(current=>{current.legacyRejected ||= {};current.legacyRejected[tab.id]=tab.url;});
+      } // No injection or unavailable guard => never enroll.
+    }
+    const after=await previewBacklog();
+    return {enrolled,skipped,remaining:after.eligible,batchSize:BACKLOG_BATCH};
+  }
+
   async function observe(tab) {
     if (tab?.id === undefined) return;
     return mutate(s => {
@@ -100,6 +149,7 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
   async function update(tab) {
     if (tab?.id === undefined) return;
     return mutate(s => {
+      if (s.legacyRejected?.[tab.id] && s.legacyRejected[tab.id] !== tab.url) delete s.legacyRejected[tab.id];
       if (!s.config.enabled) return;
       if (!s.tracked[tab.id]) return; // Existing Chrome backlog never enrolls from background refresh.
       if (s.tracked[tab.id].url === tab.url) return; // Loading a form must not clear its dirty flag.
@@ -111,6 +161,9 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
   async function activate(tab) {
     if (tab?.id === undefined) return;
     return mutate(s => {
+      // Let a user revisit/fix a previously rejected form and retry explicitly later.
+      // Never auto-enroll it: only ENROLL_BACKLOG can register an old tab.
+      delete s.legacyRejected?.[tab.id];
       if (!s.config.enabled) return;
       delete s.pending[tab.id];
       if (isSafeUrl(tab.url, [])) s.tracked[tab.id] = {url:tab.url, at:null, selected:true};
@@ -122,11 +175,11 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
     return mutate(s => {s.dirty[tabId]=true;});
   }
   async function forgetTab(tabId) {
-    return mutate(s => {delete s.tracked[tabId];delete s.dirty[tabId];delete s.pending[tabId];});
+    return mutate(s => {delete s.tracked[tabId];delete s.dirty[tabId];delete s.pending[tabId];delete s.legacyRejected?.[tabId];});
   }
   async function restart() {
     // Tab IDs can be reused after browser restart. Old pending is kept but not auto-closed.
-    return mutate(s => {s.tracked={};s.dirty={};s.restoreProtectUntil=now()+120_000;});
+    return mutate(s => {s.tracked={};s.dirty={};s.legacyRejected={};s.restoreProtectUntil=now()+120_000;});
   }
 
   async function refreshActivity(tabs) {
@@ -140,9 +193,10 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
     });
   }
 
-  async function isClean(tabId) {
+  async function isClean(tabId, legacy = false) {
     try {
-      const reply = await chrome.tabs.sendMessage(tabId, {type:'IS_DIRTY'});
+      // Recheck iframes for imported pages even if a frame appeared during Notion I/O.
+      const reply = await chrome.tabs.sendMessage(tabId, legacy ? {type:'GET_METADATA',legacy:true} : {type:'IS_DIRTY'});
       return reply?.dirty === false;
     } catch { return false; } // No guard script -> no auto-close.
   }
@@ -152,18 +206,22 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
       filter:{property:'الرابط',url:{equals:url}},page_size:1,
     });
     if (existing.results?.length) return existing.results[0].id;
-    const labels = classify(url, snapshot.title, parseDomainRules(cfg.rules));
+    const labels = classify(url, snapshot.title, parseDomainRules(cfg.rules),snapshot.metadata);
     const created = await notion(token, '/pages', notionPage({...snapshot,url},labels));
     if (!created?.id) throw Error('نوشن لم يؤكد الحفظ');
     return created.id;
   }
 
   async function process(tab, record, cfg) {
-    if (!await isClean(tab.id)) return;
+    if (!await isClean(tab.id, Boolean(record?.legacy))) return;
     const before = await read();
     if (!canArchive(tab, before.tracked[tab.id], now(), cfg.idleMinutes, cfg.excludes, Boolean(before.dirty[tab.id]))) return;
     const url = canonicalUrl(tab.url);
-    const snapshot = {url, title:tab.title || url, at:record.at};
+    let probe;
+    try {probe=await chrome.tabs.sendMessage(tab.id,{type:'GET_METADATA',legacy:Boolean(record.legacy)});} catch {}
+    if (probe?.dirty || (record.legacy && !probe?.metadata)) return;
+    const meta=sanitizeMetadata(probe?.metadata);
+    const snapshot = {url, title:meta.title || sanitizeMetadata({title:tab.title}).title || url,description:meta.description,metadata:meta, at:record.at};
     // Persist intent BEFORE network write: process crash cannot erase the attempt.
     await mutate(s => {s.pending[tab.id] = {url:tab.url,nextAt:0};});
     let notionId;
@@ -180,10 +238,10 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
     await mutate(s=>{
       delete s.pending[tab.id];
       s.lastError='';
-      s.recent = [{url, title:snapshot.title, category:classify(url,snapshot.title,parseDomainRules(cfg.rules)).category, pageId:notionId, at:now()},
+      s.recent = [{url, title:snapshot.title, description:snapshot.description, siteName:meta.siteName, category:classify(url,snapshot.title,parseDomainRules(cfg.rules),meta).category, pageId:notionId, at:now()},
         ...s.recent.filter(x=>x.url!==url)].slice(0,50);
     });
-    if (!await isClean(tab.id)) return;
+    if (!await isClean(tab.id, Boolean(record.legacy))) return;
     const state = await read();
     let fresh;
     try {fresh = await chrome.tabs.get(tab.id);} catch {return;}
@@ -205,13 +263,18 @@ export function createEngine({chrome, request = fetch, now = () => Date.now()}) 
       const eligible = tabs.filter(tab => canArchive(tab, current.tracked[tab.id], now(), current.config.idleMinutes,
         current.config.excludes, Boolean(current.dirty[tab.id])) &&
         !(current.pending[tab.id]?.url === tab.url && current.pending[tab.id]?.nextAt > now()));
-      for (const tab of eligible.slice(0,3)) {
+      let processed=0, legacyProcessed=0;
+      for (const tab of eligible) {
+        if (processed>=3) break;
+        if (legacyProcessed>=BACKLOG_SCAN_LIMIT && current.tracked[tab.id]?.legacy) continue;
         const fresh = await read();
         if (!fresh.config.enabled) break;
+        if (fresh.tracked[tab.id]?.legacy) legacyProcessed++;
         await process(tab, fresh.tracked[tab.id], fresh.config);
+        processed++;
       }
     } finally {scanning=false;}
   }
 
-  return {configure,connect,status,observe,update,activate,markDirty,forgetTab,restart,scan};
+  return {configure,connect,status,previewBacklog,enrollBacklog,observe,update,activate,markDirty,forgetTab,restart,scan};
 }

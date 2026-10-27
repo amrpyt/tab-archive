@@ -47,6 +47,8 @@ chrome.runtime.onMessage.addListener((message,sender,respond) => {
     STATUS: () => engine.status(),
     CONNECT: () => engine.connect(message.token),
     CONFIGURE: () => engine.configure(message.settings || {}),
+    PREVIEW_BACKLOG: () => engine.previewBacklog(),
+    ENROLL_BACKLOG: () => engine.enrollBacklog(),
     SCAN: () => engine.scan(),
     DISCONNECT: () => engine.configure({token:'',enabled:false}),
   };

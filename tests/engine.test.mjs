@@ -9,11 +9,16 @@ function setup() {
   const tabs=new Map();
   const removed=[];
   const calls=[];
-  let dirty=false, saveFails=false, rateLimited=false, ambiguous=false, onCreate=null;
+  let dirty=false, legacyFrame=false, saveFails=false, rateLimited=false, ambiguous=false, onCreate=null, injectionFails=false;
+  let metadata={title:'Metadata title',description:'A short article about JavaScript programming',siteName:'Developer Library',kind:'article',keywords:['javascript','programming']};
+  const injected=[];
+  const injectionTargets=[];
   const notion=new Map();
   const chrome={
     storage:{local:{get:async key=>({[key]:structuredClone(data[key])}),set:async obj=>{data={...data,...structuredClone(obj)};},setAccessLevel:async()=>{}}},
-    tabs:{query:async()=>[...tabs.values()].map(x=>({...x})),get:async id=>{if (!tabs.has(id)) throw Error('No tab');return {...tabs.get(id)};},remove:async id=>{removed.push(id);tabs.delete(id);},sendMessage:async()=>({dirty})},
+    tabs:{query:async()=>[...tabs.values()].map(x=>({...x})),get:async id=>{if (!tabs.has(id)) throw Error('No tab');return {...tabs.get(id)};},remove:async id=>{removed.push(id);tabs.delete(id);},sendMessage:async(id,msg)=>msg.type==='GET_METADATA'?{dirty:dirty || (legacyFrame && msg.legacy),metadata}:{dirty}},
+    scripting:{executeScript:async opts=>{injected.push(opts.target.tabId);injectionTargets.push(opts.target);if(injectionFails) throw Error('host permission denied');return [{frameId:0}];}},
+    permissions:{contains:async()=>true},
   };
   async function request(url,options={}) {
     calls.push({url,options});
@@ -34,7 +39,7 @@ function setup() {
     throw Error('Unknown url '+url);
   }
   const engine=createEngine({chrome,request,now:()=>time});
-  return {engine,chrome,tabs,removed,calls,notion,advance:ms=>{time+=ms;},setDirty:v=>{dirty=v;},setSaveFails:v=>{saveFails=v;},setRateLimited:v=>{rateLimited=v;},setAmbiguous:v=>{ambiguous=v;},setOnCreate:v=>{onCreate=v;},getData:()=>data,sleep};
+  return {engine,chrome,tabs,removed,calls,notion,injected,injectionTargets,advance:ms=>{time+=ms;},setDirty:v=>{dirty=v;},setLegacyFrame:v=>{legacyFrame=v;},setMetadata:v=>{metadata=v;},setInjectionFails:v=>{injectionFails=v;},setSaveFails:v=>{saveFails=v;},setRateLimited:v=>{rateLimited=v;},setAmbiguous:v=>{ambiguous=v;},setOnCreate:v=>{onCreate=v;},getData:()=>data,sleep};
 }
 const tab=(id=1)=>({id,url:'https://example.com/docs',title:'Read me',active:false,pinned:false,audible:false,incognito:false});
 
@@ -187,4 +192,108 @@ test('tabs opened during pause cannot be closed immediately after resume',async(
   await f.engine.configure({enabled:true});await f.engine.scan();
   assert.deepEqual(f.removed,[]);
   assert.equal(f.calls.length,0);
+});
+
+test('old tabs are listed for opt-in without ever enrolling by themselves',async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  for(const t of [tab(1),{...tab(2),pinned:true},{...tab(3),active:true},{...tab(4),url:'https://mail.google.com/'},tab(5)])f.tabs.set(t.id,t);
+  const preview=await f.engine.previewBacklog();
+  assert.equal(preview.eligible,2);
+  assert.equal(preview.batchSize,10);
+  assert.deepEqual(f.getData().tabArchiveV1.tracked,{});
+  f.advance(10*60_000);await f.engine.scan();assert.deepEqual(f.removed,[]);
+});
+
+test('explicit backlog enrollment checks host permission, protects old forms and starts fresh idle timer',async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  f.tabs.set(1,tab(1));f.tabs.set(2,tab(2));
+  f.setDirty(true);
+  let result=await f.engine.enrollBacklog();
+  assert.equal(result.enrolled,0);
+  assert.deepEqual(f.removed,[]);
+  assert.equal((await f.engine.previewBacklog()).eligible,0,'unsafe tabs must not be repeatedly offered');
+  const safe=setup();await safe.engine.configure({token:'secret',enabled:true});
+  safe.tabs.set(1,tab(1));safe.tabs.set(2,tab(2));
+  result=await safe.engine.enrollBacklog();
+  assert.equal(result.enrolled,2);
+  assert.deepEqual(safe.injected,[1,2]);
+  assert.equal(safe.injectionTargets.every(t=>t.allFrames===false),true);
+  await safe.engine.scan();assert.deepEqual(safe.removed,[]);
+  safe.advance(301_000);await safe.engine.scan();assert.deepEqual(safe.removed,[1]);
+  assert.equal(safe.notion.size,1,'duplicate old links share a single Notion row');
+});
+
+test('a rejected old tab can enter the normal idle cycle if user actively revisits it',async()=>{
+  const f=setup(); await f.engine.configure({token:'secret',enabled:true});
+  const old=tab();f.tabs.set(1,old);f.setDirty(true);
+  assert.equal((await f.engine.enrollBacklog()).enrolled,0);
+  assert.equal((await f.engine.previewBacklog()).eligible,0);
+  f.setDirty(false);
+  f.tabs.set(1,{...old,active:true});
+  await f.engine.activate({...old,active:true});
+  assert.equal(f.getData().tabArchiveV1.tracked[1].at,null);
+  f.tabs.set(1,old);
+  await f.engine.scan();
+  assert.equal((await f.engine.previewBacklog()).eligible,0,'already tracked by explicit user visit');
+  assert.deepEqual(f.removed,[],'a previously rejected tab cannot close immediately');
+  f.advance(301_000);await f.engine.scan();
+  assert.deepEqual(f.removed,[1]);
+});
+
+test('old backlog enrollment fails closed if injection fails, permission missing, or running is paused',async()=>{
+  const f=setup(); f.tabs.set(1,tab());
+  await f.engine.configure({token:'secret',enabled:true});
+  f.setInjectionFails(true);assert.equal((await f.engine.enrollBacklog()).enrolled,0);
+  f.advance(360_000);await f.engine.scan();assert.deepEqual(f.removed,[]);
+  f.setInjectionFails(false);
+  f.chrome.permissions.contains=async()=>false;
+  await assert.rejects(f.engine.enrollBacklog(),/permission|صلاحية/i);
+  f.chrome.permissions.contains=async()=>true;
+  await f.engine.configure({enabled:false});
+  await assert.rejects(f.engine.enrollBacklog(),/شغّل|enable/i);
+});
+
+test('old backlog is capped at ten explicit enrollments per click, without closing tabs',async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  for(let id=1;id<=22;id++)f.tabs.set(id,{...tab(id),url:`https://example.com/article/${id}`});
+  const first=await f.engine.enrollBacklog();
+  assert.equal(first.enrolled,10);
+  assert.equal(first.remaining,12);
+  assert.deepEqual(f.removed,[]);
+  assert.equal(Object.keys(f.getData().tabArchiveV1.tracked).length,10);
+});
+
+test('new iframe appearing during archive write prevents closing an imported legacy tab',async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  f.tabs.set(1,tab());assert.equal((await f.engine.enrollBacklog()).enrolled,1);
+  f.advance(301_000);
+  f.setOnCreate(async()=>f.setLegacyFrame(true));
+  await f.engine.scan();
+  assert.equal(f.notion.size,1,'Notion acknowledged the save');
+  assert.deepEqual(f.removed,[],'iframe after network write must prevent closing');
+});
+
+test('safe page metadata enriches Notion description and classification without saving whole HTML',async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  const t={...tab(),title:'Home',url:'https://example.com/article'};
+  f.tabs.set(t.id,t);await f.engine.observe(t);
+  f.advance(301_000);await f.engine.scan();
+  const create=f.calls.find(x=>x.url.endsWith('/pages'));
+  const page=JSON.parse(create.options.body);
+  assert.equal(page.properties['العنوان'].title[0].text.content,'Metadata title');
+  assert.equal(page.properties['التصنيف'].select.name,'برمجة');
+  assert.equal(page.properties['النوع'].select.name,'مقال');
+  assert.equal(page.properties['وصف مختصر'].rich_text[0].text.content,'A short article about JavaScript programming');
+  assert.equal((await f.engine.status()).recent[0].siteName,'Developer Library');
+  assert.equal(JSON.stringify(page).includes('outerHTML'),false);
+});
+
+test('unsanitized, missing, or dirty metadata never bypasses the close safety guard',async()=>{
+  const f=setup();await f.engine.configure({token:'secret',enabled:true});
+  f.setMetadata({title:'A title',description:'access_token=SECRET-PRIVATE',kind:'article'});
+  f.tabs.set(1,tab());await f.engine.observe(tab());
+  f.advance(301_000);await f.engine.scan();
+  const p=JSON.parse(f.calls.find(x=>x.url.endsWith('/pages')).options.body);
+  assert.equal(p.properties['وصف مختصر'],undefined);
+  assert.deepEqual(f.removed,[1]);
 });

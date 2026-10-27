@@ -36,6 +36,11 @@ details button {margin-top:9px}
 .item:last-child {border:0}
 .item button {display:block;padding:0;background:none;border:0;text-align:start;color:#235d54;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:238px}
 .item small {margin-inline-start:auto;white-space:nowrap}
+.item .recent-text {min-width:0;flex:1}
+.item .recent-description {display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:225px}
+#oldTabsPanel p {line-height:1.65;margin:7px 0 10px}
+#oldTabsPanel .flex {flex-wrap:wrap;justify-content:flex-start}
+#oldInfo {margin-top:8px}
 #feedback {min-height:16px;color:#ac483e}
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible {outline:2px solid #168871;outline-offset:2px}
 :root[lang='en'] input,:root[lang='en'] textarea {direction:ltr}

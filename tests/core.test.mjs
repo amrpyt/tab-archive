@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canonicalUrl, classify, isSafeUrl, canArchive, notionPage, parseDomainRules } from '../extension/core.js';
+import { canonicalUrl, classify, isSafeUrl, canArchive, notionPage, parseDomainRules, sanitizeMetadata } from '../extension/core.js';
 
 test('canonicalizes trackers but keeps functional video and timestamp params', () => {
   assert.equal(canonicalUrl('https://youtube.com/watch?v=abc&t=42&utm_source=mail#comments'), 'https://youtube.com/watch?v=abc&t=42#comments');
@@ -51,4 +51,15 @@ test('Notion payload matches existing data source field names and no token inclu
   assert.equal(p.properties['الوسوم'].multi_select[0].name, 'مشاهدة لاحقًا');
   assert.equal(p.properties['الرابط'].url, 'https://youtube.com/watch?v=x');
   assert.equal('token' in p, false);
+});
+
+test('page metadata is bounded and never stores secret-looking content',()=>{
+  const safe=sanitizeMetadata({title:'Hi',description:'Word '.repeat(90),siteName:'Site',keywords:['code','javascript'],kind:'ARTICLE'});
+  assert.equal(safe.description.length,300);
+  assert.equal(safe.kind,'article');
+  const risky=sanitizeMetadata({title:'token=privatevalue',description:'Bearer credentials',siteName:'api_key=private',keywords:['password=secret','software']});
+  assert.equal(risky.title,'');
+  assert.equal(risky.description,'');
+  assert.equal(risky.siteName,'');
+  assert.deepEqual(risky.keywords,['software']);
 });

@@ -14,7 +14,7 @@
 ## Safety & done
 - Never close without confirmed Notion write + second tab/form safety check. Failed save -> stay open, retry; deduplicate.
 - Skip active/pinned/audible/incognito/restricted/excluded/dirty. Browser restart: `chrome.storage.session` marker clears stale IDs; pause ignores tabs.
-- V1 metadata only. No secrets, forms, body text, transcripts. Official Notion API. No bulk-close or existing-tab sweep.
+- V1 metadata only. No secrets, forms, body text, transcripts. Official Notion API. Existing-tab enrollment is **explicit**, preview-first, at most 10 per click; no automatic sweep or bulk-close. New idle timer for enrolled tabs. Guard any old tab with an iframe, previously edited form, or failed injection; check again before and after Notion I/O.
 - Real isolated Chrome E2E passed on 2026-10-27. Actual Notion entries verified independently via Notion data source view. No user Chrome tabs touched.
 - Production extension loaded in isolated Chrome. Real Notion API returned 401 for deliberately invalid test token; auto-save stayed OFF.
 - Chrome 137+ branded ignores `--load-extension`. Isolated launcher uses Chrome for Testing; never load user Chrome profile.
@@ -25,6 +25,7 @@
 - V1.1.0 UI: Arabic RTL + English LTR switching; English category rules normalized to original Notion Arabic values. Prefer `Point R` if user has font installed; fallback bundled OFL IBM Plex Sans Arabic Regular/Medium/SemiBold/Bold, Inter variable for English. The exact Point R font binary/license could not be verified; do not claim it is bundled.
 - Isolated Chrome Developer Mode must be enabled for unpacked extension; use Chrome extension manager Reload instead of `chrome.runtime.reload()` in the popup (which may disable unpacked extension).
 - Only repeat tests on code changes or new failures; no V2 work.
+- v1.2.0 isolated Chrome: explicit enrollment of 2 existing test tabs worked; pinned tab was skipped; both stayed open; metadata read from MDN; EN/AR UI confirmed. Isolated dummy test authorization was disabled and removed. This was **not** a live Notion metadata-write test. Node suite **42/42**, including iframe added while saving. See `docs/e2e-v1.2.0.md`.
 
 ## References
 - Spec: `docs/superpowers/specs/2026-10-26-tab-archive-v1-design.md`

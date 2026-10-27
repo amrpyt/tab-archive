@@ -45,6 +45,23 @@ export function canonicalUrl(value) {
   return u.toString();
 }
 
+// Page-owned metadata is untrusted. Never persist credentials or long/freeform page text.
+export function sanitizeMetadata(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  const unsafe = /(?:\b(?:token|access_token|refresh_token|id_token|api[_-]?key|client_secret|password|sessionid|authorization|bearer|private_key|csrf|jwt)\b\s*[:=]|\bbearer\s+\S+|\b(?:sk|ntn)_[a-z0-9_-]{16,})/i;
+  const clean = (value,limit) => {
+    if (typeof value !== 'string' || value.length > 2000) return '';
+    const text = value.replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim();
+    if (unsafe.test(text) || /[\r\n]/.test(value) && unsafe.test(value)) return '';
+    return text.slice(0,limit);
+  };
+  return {
+    title:clean(raw.title,180),description:clean(raw.description,300),siteName:clean(raw.siteName,80),
+    kind:clean(raw.kind,40).toLowerCase(),
+    keywords:Array.isArray(raw.keywords)?raw.keywords.slice(0,5).map(x=>clean(x,36)).filter(Boolean):[],
+  };
+}
+
 export function parseDomainRules(raw = '') {
   const out = {};
   for (const line of String(raw).split(/\r?\n/)) {
@@ -56,12 +73,12 @@ export function parseDomainRules(raw = '') {
   return out;
 }
 
-export function classify(url, title = '', rules = {}) {
+export function classify(url, title = '', rules = {}, metadata = {}) {
   const {hostname, pathname} = new URL(url);
   const host = hostname.toLowerCase();
-  const text = `${host} ${title}`.toLowerCase();
+  const text = `${host} ${title} ${metadata.description || ''} ${metadata.keywords?.join(' ') || ''}`.toLowerCase();
   const youtube = domainMatches(host, 'youtube.com') || host === 'youtu.be';
-  const type = youtube ? 'يوتيوب' : /\/articles?\/|\/blog\/|\/posts?\/|\/wiki\//i.test(pathname) ? 'مقال' : 'موقع';
+  const type = youtube ? 'يوتيوب' : metadata.kind === 'article' || /\/articles?\/|\/blog\/|\/posts?\/|\/wiki\//i.test(pathname) ? 'مقال' : 'موقع';
   let category = 'أخرى';
   const override = Object.entries(rules).find(([domain]) => domainMatches(host, domain.toLowerCase()));
   if (override && CATEGORIES.includes(override[1])) category = override[1];
@@ -89,6 +106,7 @@ export function notionPage(snapshot, labels, dataSourceId = DATA_SOURCE_ID) {
       'التصنيف': {select:{name:labels.category}},
       'الوسوم': {multi_select:labels.tags.map(name => ({name}))},
       'آخر استخدام': {date:{start:new Date(snapshot.at).toISOString()}},
+      ...(snapshot.description ? {'وصف مختصر':{rich_text:[{text:{content:snapshot.description.slice(0,300)}}]}} : {}),
     },
   };
 }

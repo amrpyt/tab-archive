@@ -46,3 +46,10 @@
 ## Backups
 - Caveman Compress script calls Claude; user forbids. Compress prose manually with original preserved outside repo: `%LOCALAPPDATA%\caveman-compress\backups\tab-archive\` (`AGENTS.*.original.md`, `agent-memory.*.original.md`). Never compress code, URLs, commands, secrets.
 - Global memory: `mem context "tab-archive: <task>"` when relevant; record verified milestones under project tab-archive. No worktrees. Do not run Caveman Compress code that invokes Claude.
+
+## v1.2.0 — legacy enrollment and metadata (2026-10-27)
+- Explicit preview and import of at most 10 existing Chrome tabs per click. No automatic import; new idle timer from enrollment. Host permission check; top-frame injection; reject dirty forms, iframes, unsafe/active/pinned/audible pages and failed probes. Rejected tabs are not repeatedly retried until navigation or user reactivation. No browser restart/bulk close.
+- Bounded local OG/SEO metadata: title, description, site name, type, keywords (max 5). Sanitized before Notion; `وصف مختصر` property used when safe; enriches category and local recent search. No page HTML, input values or full-text indexing.
+- E2E on Chrome for Testing extension v1.2.0: with a **dummy local authorization solely to enable import**, preview counted 2 eligible tabs, explicit enrollment registered both, pinned third protected, all 3 remained open, MDN guard returned title/description, bilingual popup worked. Dummy token removed and archiving disabled. **No real Notion v1.2.0 write was verified.** Prior v1.1 live Notion acceptance remains separate evidence.
+- v1.2 safety regression: fresh iframe appearing during the HTTP write prevents old tab closure even after Notion acknowledgment; injection targets top frame only. `npm test` **42/42**.
+- Use `docs/e2e-v1.2.0.md` for verified vs unverified boundaries. Never inspect or copy Chrome profile token.

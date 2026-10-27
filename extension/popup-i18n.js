@@ -12,6 +12,10 @@ export const translations = {
     categoriesHint:'التصنيفات: برمجة، ذكاء اصطناعي، دين، تصميم، شغل، أخرى',
     saveRules:'حفظ القواعد',disconnect:'فصل نوشن',empty:'مفيش روابط هنا لسه',
     saved:'اتحفظ',pending:n=>`فيه ${n} محاولة حفظ هتتكرر`,language:'English',switchLabel:'Switch to English',
+    oldHeading:'التبويبات القديمة',oldWarning:'مش هنضم أي تبويب قديم تلقائيًا. عاين العدد الأول، وبعدين ضم ١٠ في كل مرة. كل تبويب يستنى مدة الخمول من جديد، ومش هيتقفل إلا بعد حفظ نوشن.',
+    previewOld:'معاينة القديم',importOld:'ضم أول ١٠ تبويبات',oldCount:n=>`${n} تبويب ممكن يتضم (قبل فحص النماذج).`,
+    oldImported:(n,r)=>`اتضم ${n} تبويب بأمان. متبقي للمعاينة ${r}. التبويبات المحمية هتفضل مفتوحة.`,
+    oldDenied:'لازم توافق على صلاحية المواقع عشان نفحص التبويبات القديمة من غير إعادة تحميلها.',
   },
   en: {
     appName:'Tabati',tagline:'Keep the link. Free up your tabs.',running:'Running',stopped:'Paused',
@@ -26,6 +30,10 @@ export const translations = {
     categoriesHint:'Categories: Programming, AI, Religion, Design, Work, Other',
     saveRules:'Save rules',disconnect:'Disconnect Notion',empty:'No archived links yet',
     saved:'Saved',pending:n=>`${n} archive attempts waiting to retry`,language:'العربية',switchLabel:'التبديل إلى العربية',
+    oldHeading:'Existing tabs',oldWarning:'Existing tabs are never enrolled automatically. Preview first, then enroll 10 at a time. Each gets a fresh idle countdown; tabs close only after Notion confirms the save.',
+    previewOld:'Preview existing tabs',importOld:'Enroll next 10',oldCount:n=>`${n} possible tabs (before unsaved-form checks).`,
+    oldImported:(n,r)=>`Safely enrolled ${n}. ${r} remain for review. Protected tabs stay open.`,
+    oldDenied:'Grant optional site access to inspect existing tabs without reloading them.',
   },
 };
 

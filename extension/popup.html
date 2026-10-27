@@ -25,6 +25,12 @@
       <div id="recent" role="list"></div>
       <small id="pending"></small>
     </section>
+    <section class="panel" id="oldTabsPanel">
+      <strong data-i18n="oldHeading">التبويبات القديمة</strong>
+      <p data-i18n="oldWarning">مش هنضم أي تبويب قديم تلقائيًا. راجع العدد الأول، وبعدين ضم ١٠ في كل مرة. انتظار جديد ٥ دقائق، وإغلاق بعد نجاح نوشن فقط.</p>
+      <div class="flex"><button id="previewOld" type="button" data-i18n="previewOld">معاينة التبويبات الآمنة</button><button id="importOld" class="primary" type="button" hidden disabled data-i18n="importOld">ضم أول ١٠ تبويبات</button></div>
+      <small id="oldInfo" aria-live="polite"></small>
+    </section>
     <details class="panel"><summary data-i18n="rulesHeading">الاستثناءات والتصنيفات</summary>
       <label for="excluded" data-i18n="excludedLabel">مواقع متتحفظش (موقع في كل سطر)</label><textarea id="excluded" rows="5" spellcheck="false"></textarea>
       <label for="rules" data-i18n="rulesLabel">تصنيف مخصص (موقع=تصنيف)</label><textarea id="rules" rows="4" spellcheck="false" placeholder="example.com=برمجة" data-i18n-placeholder="rulesPlaceholder"></textarea>
